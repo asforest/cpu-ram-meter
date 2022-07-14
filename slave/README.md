@@ -1,13 +1,14 @@
-## little-meter 下位机程序
+## cpu-ram-meter 下位机程序
 
 下位机程序适用于ESP8266/ESP32 for Arduino开发环境。
 
 ### 简明教程
 
-1. 安装Arduino软件
-2. 安装[ESP8266](https://github.com/esp8266/Arduino#readme)或者[ESP32](https://github.com/espressif/arduino-esp32#readme)的Arduino Package
-3. 选择你的实际开发板型号和串行端口号
-4. 搜索安装以下Arduino Libraries
+1. 通过I2C将OLED模块连接到ESP8266/32上
+2. 安装Arduino软件
+3. 安装[ESP8266](https://github.com/esp8266/Arduino#readme)或者[ESP32](https://github.com/espressif/arduino-esp32#readme)的Arduino Package
+4. 选择你的实际开发板型号和串行端口号
+5. 搜索安装以下Arduino Libraries
 
 | 库名称                                                  | 版本    | 作者            |
 | ------------------------------------------------------- | ------- | --------------- |
