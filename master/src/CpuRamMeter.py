@@ -5,8 +5,7 @@ from src.Screen import Screen
 
 class CpuRamMeter:
     def __init__(self, width, height, host, port):
-        self.socket = socket.socket()
-        self.socket.settimeout(3)
+        self.socket = None
         self.exit_flag = False
         self.slave_addr_port = (host, port)
         self.screen = Screen(width, height)
@@ -28,16 +27,33 @@ class CpuRamMeter:
         self.socket.send('b'.encode() + self.screen.dump_frame_buffer())
         self.socket.recv(8).decode() # wait for the salve's response
     
+    def conect_to_slave(self):
+        self.socket = socket.socket()
+        self.socket.settimeout(3)
+        self.socket.connect(self.slave_addr_port)
+
     def main_loop(self):
-        try:
-            self.socket.connect(self.slave_addr_port)
+        retries = 3
 
-            while not self.exit_flag:
-                self.draw_frame()
-                self.transmit_frame()
+        while retries >= 0:
+            try:
+                print('connect to ' + str(self.slave_addr_port))
+                self.conect_to_slave()
+
+                while not self.exit_flag:
+                    self.draw_frame()
+                    self.transmit_frame()
+                    time.sleep(1)
+
+            except TimeoutError as e:
+                retries -= 1
+                print('connection timeout')
                 time.sleep(1)
-
-        except ConnectionAbortedError as e:
-            print('connection abort, trying to reconnect...')
-            time.sleep(3)
-            pass
+                
+            except ConnectionAbortedError as e:
+                retries -= 1
+                print('connection abort')
+                time.sleep(1)
+            
+            finally:
+                self.socket.close()
