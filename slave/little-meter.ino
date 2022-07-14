@@ -361,9 +361,9 @@ void setup()
     EEPROM.begin(128);
 
     // enable power supply over a common GPIO
-    pinMode(pwr_pin, OUTPUT);
-    digitalWrite(pwr_pin, 1);
-    delay(20);
+    // pinMode(pwr_pin, OUTPUT);
+    // digitalWrite(pwr_pin, 1);
+    // delay(20);
 
     // initialize i2c
     Wire.begin();
