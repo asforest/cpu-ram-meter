@@ -23,7 +23,7 @@ struct BrightnessConfig {
 
 const byte address = 0x3c;
 const int screen_width = 128;
-const int screen_height = 64;
+const int screen_height = 32;
 int network_port = 9080;
 
 char* ssid = NULL;
