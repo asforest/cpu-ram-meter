@@ -224,7 +224,7 @@ void process_client()
 
                 if (expected > 0)
                 {
-                    client.printf("%c: expect data len %d, received len %d.\n", payload_len, expected);
+                    client.printf("%c: expect data len %d, received len %d.\n", first, payload_len, expected);
                     client.flush();
                 }
             }
@@ -329,7 +329,7 @@ void show_message()
             break;
 
         case WL_CONNECTED:
-            if (last_wifi_state == WL_IDLE_STATUS)
+            if (last_wifi_state != WL_CONNECTED)
             {
                 last_rssi_refresh = 0;
                 
@@ -416,6 +416,7 @@ void setup()
 
     // connect to the network
     if (ssid != NULL && password != NULL) 
+        WiFi.begin(ssid, password);
 }
 
 void loop() 
