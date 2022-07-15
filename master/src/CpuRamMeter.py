@@ -25,7 +25,9 @@ class CpuRamMeter:
 
     def transmit_frame(self):
         self.socket.send('b'.encode() + self.screen.dump_frame_buffer())
-        self.socket.recv(8).decode() # wait for the salve's response
+        response = self.socket.recv(64).decode().strip() # wait for the salve's response
+        if response != 'ok':
+            print(response)
     
     def conect_to_slave(self):
         self.socket = socket.socket()
