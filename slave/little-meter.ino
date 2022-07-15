@@ -1,18 +1,24 @@
 #include "Wire.h"
 #include "U8g2lib.h"
 #include "ArduinoJson.h"
-#include <WiFi.h>
 #include <EEPROM.h>
+#if defined(ARDUINO_ESP8266_RELEASE)
+#include <ESP8266WiFi.h>
+#elif defined(ARDUINO_ESP32_RELEASE)
+#include <WiFi.h>
+#else
+#error "The ESP8266 or the ESP32 environment is required to compile."
+#endif
 
 struct WifiConfig {
-  char ssid[32];
-  char password[32];
-  byte is_set;
+    char ssid[32];
+    char password[32];
+    unsigned long is_set;
 };
 
 struct BrightnessConfig {
-  byte brightness;
-  byte is_set;
+    byte brightness;
+    unsigned long is_set;
 };
 
 const byte address = 0x3c;
@@ -36,7 +42,8 @@ bool screen_buf_has_contents = false;
 unsigned long last_rssi_refresh = 0;
 wl_status_t last_wifi_state = WL_NO_SHIELD;
 
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 WiFiServer server(network_port);
 DynamicJsonDocument json_doc(1024);
 
@@ -46,7 +53,7 @@ void write_ssid_password(char* ssid, char* password)
     memset(&data, 0, sizeof(WifiConfig));
     memcpy(&data.ssid, ssid, strlen(ssid));
     memcpy(&data.password, password, strlen(password));
-    data.is_set = 0x1;
+    data.is_set = 0x12345678UL;
     EEPROM.put(0, data);
     EEPROM.commit();
 }
@@ -54,6 +61,7 @@ void write_ssid_password(char* ssid, char* password)
 WifiConfig read_ssid_password()
 {
     WifiConfig data;
+    memset(&data, 0, sizeof(WifiConfig));
     EEPROM.get(0, data);
     return data;
 }
@@ -61,7 +69,7 @@ WifiConfig read_ssid_password()
 bool is_ssid_password_set()
 {
     WifiConfig wc = read_ssid_password();
-    return wc.is_set > 0;
+    return wc.is_set == 0x12345678UL;
 }
 
 void write_brightness(byte brightness)
@@ -70,7 +78,7 @@ void write_brightness(byte brightness)
     BrightnessConfig bc;
     memset(&bc, 0, sizeof(BrightnessConfig));
     bc.brightness = brightness;
-    bc.is_set = 0x1;
+    bc.is_set = 0x12345678UL;
     EEPROM.put(addr, brightness);
     EEPROM.commit();
 }
@@ -80,7 +88,7 @@ byte read_brightness()
     int addr = sizeof(WifiConfig);
     BrightnessConfig bc;
     EEPROM.get(addr, bc);
-    return bc.is_set > 0 ? bc.brightness : 255;
+    return bc.is_set == 0x12345678UL ? bc.brightness : 255;
 }
 
 void rtrim(char* str)
@@ -122,10 +130,16 @@ void draw_screen_frame()
 
 void display_text(char* line0, char* line1=NULL)
 {
+    String l0(line0);
+    String l1(line1);
+
+    l0.replace(" ", "   ");
+    l1.replace(" ", "   ");
+    
     u8g2.clearBuffer();
-    u8g2.drawUTF8(0, 0, line0);
+    u8g2.drawUTF8(0, 0, l0.c_str());
     if (line1 != NULL)
-      u8g2.drawUTF8(0, 16, line1);
+      u8g2.drawUTF8(0, 16, l1.c_str());
     u8g2.sendBuffer();
 }
 
@@ -342,7 +356,7 @@ void show_message()
                 return;
             
             // stop the TCP server
-            server.end();
+            server.close();
 
             screen_buf_has_contents = false;
             
@@ -361,9 +375,9 @@ void setup()
     EEPROM.begin(128);
 
     // enable power supply over a common GPIO
-    // pinMode(pwr_pin, OUTPUT);
-    // digitalWrite(pwr_pin, 1);
-    // delay(20);
+    pinMode(pwr_pin, OUTPUT);
+    digitalWrite(pwr_pin, 1);
+    delay(20);
 
     // initialize i2c
     Wire.begin();
@@ -407,8 +421,7 @@ void setup()
     }
 
     // connect to the network
-    if (ssid != NULL && password != NULL)
-      WiFi.begin(ssid, password);
+    if (ssid != NULL && password != NULL) 
 }
 
 void loop() 
