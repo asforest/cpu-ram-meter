@@ -24,7 +24,6 @@ struct BrightnessConfig {
 const byte address = 0x3c;
 const int screen_width = 128;
 const int screen_height = 64;
-int pwr_pin = 23;
 int network_port = 9080;
 
 char* ssid = NULL;
@@ -371,13 +370,8 @@ void setup()
 {
     Serial.begin(115200);
     Serial.setTimeout(100); // set timeout for reading
-
+    
     EEPROM.begin(128);
-
-    // enable power supply over a common GPIO
-    pinMode(pwr_pin, OUTPUT);
-    digitalWrite(pwr_pin, 1);
-    delay(20);
 
     // initialize i2c
     Wire.begin();
