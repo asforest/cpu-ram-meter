@@ -23,6 +23,9 @@ class CpuRamMeter:
             
             # painter.line((0, 32, 127, 32), fill=1, width=1)
 
+    def set_brightness(self, brightness):
+        self.socket.send(('c'+chr(brightness)).encode())
+        
     def transmit_frame(self):
         self.socket.send('b'.encode() + self.screen.dump_frame_buffer())
         response = self.socket.recv(64).decode().strip() # wait for the salve's response
